@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Flask-Ajax</title>
+
+  <script src="static/jquery-2.2.3.min.js"></script>
+</head>
+
+<body>
+  <div class="messagebox">
+  </div>
+
+  <form action="/get" method="post" role="form" class="getform">
+    <!-- <input name="urlinput" id="urlinput"> -->
+    <div class="input_fields_wrap">
+      <button class="add_field_button">Add More Fields</button>
+      <div><input type="text" name="urlinput"/><a href="#" class="remove_field">Remove</a></div>
+    </div>
+    <button id="getbutton">Get Feeds</button>
+    <!-- <p><a href="javascript:void();" id="button">Get Feeds</a></p> -->
+  </form>
+  <form action='/save', method="post" role="form" class="saveform">
+    <div class="results_wrapper">
+    </div>
+    <button id="savebutton">Save Feeds</button>
+  </form>
+</body>
+
+</html>
+
+<script type="text/javascript">
+$(document).ready(function() {
+  var max_fields = 10;
+  var wrapper = $(".input_fields_wrap");
+  var add_button = $(".add_field_button");
+  var results_wrapper = $(".results_wrapper");
+
+  var x = 1;
+  $(add_button).click(function(e) {
+    e.preventDefault();
+    if(x < max_fields){
+      x++;
+      $(wrapper).append('<div><input type="text" name="urlinput"/><a href="#" class="remove_field">Remove</a></div>');
+    }
+  });
+
+  $(wrapper).on("click", ".remove_field", function(e) {
+    e.preventDefault();
+    $(this).parent('div').remove();
+    x--;
+  });
+
+  $('#getbutton').click(function(e) {
+    e.preventDefault();
+    console.log('Get button clicked');
+    console.log('URLs: ' + $('.getform').serialize());
+    $.ajax({
+      url: '/get',
+      data: $('.getform').serialize(),
+      type: 'POST',
+      success: function (response) {
+        $(results_wrapper).empty();
+        for (var i = 0; i < response.result.length; i++){
+          $(results_wrapper).append('<label><input type="checkbox" name="feedinput" >'+response.result[i]+'</label><br>');
+        }
+      },
+      error: function(error){
+        console.log(error);
+      }
+    });
+  });
+
+  $('#savebutton').click(function(e) {
+    e.preventDefault();
+    console.log('Save button clicked');
+    console.log('Feeds: ' + $('.saveform').serialize())
+    $.ajax({
+      url: '/save',
+      data: $('.saveform').serialize(),
+      type: 'POST',
+      success: function (response) {
+        console.log(response.message);
+        $('.messagebox').append('<p>'+response.message+'</p>');
+      },
+      error: function (error) {
+        console.log(error);
+      }
+    });
+  });
+});
+</script>
