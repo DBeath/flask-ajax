@@ -12,14 +12,13 @@
   </div>
 
   <form action="/get" method="post" role="form" class="getform">
-    <!-- <input name="urlinput" id="urlinput"> -->
     <div class="input_fields_wrap">
       <button class="add_field_button">Add More Fields</button>
       <div><input type="text" name="urlinput"/><a href="#" class="remove_field">Remove</a></div>
     </div>
     <button id="getbutton">Get Feeds</button>
-    <!-- <p><a href="javascript:void();" id="button">Get Feeds</a></p> -->
   </form>
+
   <form action='/save', method="post" role="form" class="saveform">
     <div class="results_wrapper">
     </div>
@@ -62,7 +61,7 @@ $(document).ready(function() {
       success: function (response) {
         $(results_wrapper).empty();
         for (var i = 0; i < response.result.length; i++){
-          $(results_wrapper).append('<label><input type="checkbox" name="feedinput" >'+response.result[i]+'</label><br>');
+          $(results_wrapper).append('<input type="checkbox" class="feedinput"><label>'+response.result[i]+'</label><br>');
         }
       },
       error: function(error){
@@ -73,14 +72,24 @@ $(document).ready(function() {
 
   $('#savebutton').click(function(e) {
     e.preventDefault();
+    var feeds = $('.feedinput').map(function () {
+      if($(this).is(':checked')){
+        return $(this).next('label').text();
+      }
+    }).get();
     console.log('Save button clicked');
-    console.log('Feeds: ' + $('.saveform').serialize())
+    console.log('Feeds: ' + feeds);
+    var toSend = JSON.stringify(feeds);
+    console.log(toSend);
     $.ajax({
       url: '/save',
-      data: $('.saveform').serialize(),
+      data: toSend,
       type: 'POST',
+      dataType: "json",
+      contentType: "application/json;charset=utf-8",
       success: function (response) {
         console.log(response.message);
+        $('.messagebox').empty();
         $('.messagebox').append('<p>'+response.message+'</p>');
       },
       error: function (error) {

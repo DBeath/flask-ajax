@@ -12,9 +12,6 @@ def index():
 
 @app.route('/get', methods=['POST'])
 def get():
-    print(request)
-    print(request.form)
-    print(request.form.getlist('urlinput'))
     urls = request.form.getlist('urlinput')
     print(urls)
     feeds = []
@@ -27,7 +24,8 @@ def get():
 
 @app.route('/save', methods=['POST'])
 def save():
-    feeds = request.form.getlist('feedinput')
+    print(request.mimetype)
+    feeds = request.get_json(force=True)
     print(feeds)
     msg = u'Saved feeds: {0}'.format(feeds)
     return jsonify({'message': msg})
