@@ -3,99 +3,41 @@
 
 <head>
   <title>Flask-Ajax</title>
-
-  <script src="static/jquery-2.2.3.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='semantic.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='icon.min.css')}}">
+  <script src="{{url_for('static', filename='semantic.min.js')}}"></script>
 </head>
 
 <body>
+  <div class="ui container">
   <div class="messagebox">
   </div>
 
-  <form action="/get" method="post" role="form" class="getform">
-    <div class="input_fields_wrap">
-      <button class="add_field_button">Add More Fields</button>
-      <div><input type="text" name="urlinput"/><a href="#" class="remove_field">Remove</a></div>
+  <form class="ui form" action="{{ url_for('get') }}" method="post" role="form" id="findform">
+    <button class="ui button" id="add_field_button">Add More Fields</button>
+    <div class="field input_fields_wrap">
+
+      <div class="ui action input">
+        <input type="text" name="urlinput"/>
+        <button class="ui icon button remove_field">
+          <i class="remove icon"></i>
+        </button>
+      </div>
     </div>
-    <button id="getbutton">Get Feeds</button>
+    <button class="ui button" type="submit" id="findbutton">Find Feeds</button>
   </form>
 
-  <form action='/save', method="post" role="form" class="saveform">
-    <div class="results_wrapper">
+  <form class="ui form" action="{{ url_for('save') }}", method="post" role="form" id="saveform">
+    <div class="list" id="results_wrapper">
     </div>
-    <button id="savebutton">Save Feeds</button>
+    <button class="ui button" type="submit" id="savebutton">Subscribe Feeds</button>
   </form>
+  </div>
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+  <script>window.jQuery || document.write('<script src="{{url_for('static', filename='jquery-3.1.0.min.js') }}">\x3C/script>')</script>
+  <script src="{{url_for('static', filename='main.js')}}"></script>
 </body>
-
 </html>
 
-<script type="text/javascript">
-$(document).ready(function() {
-  var max_fields = 10;
-  var wrapper = $(".input_fields_wrap");
-  var add_button = $(".add_field_button");
-  var results_wrapper = $(".results_wrapper");
 
-  var x = 1;
-  $(add_button).click(function(e) {
-    e.preventDefault();
-    if(x < max_fields){
-      x++;
-      $(wrapper).append('<div><input type="text" name="urlinput"/><a href="#" class="remove_field">Remove</a></div>');
-    }
-  });
-
-  $(wrapper).on("click", ".remove_field", function(e) {
-    e.preventDefault();
-    $(this).parent('div').remove();
-    x--;
-  });
-
-  $('#getbutton').click(function(e) {
-    e.preventDefault();
-    console.log('Get button clicked');
-    console.log('URLs: ' + $('.getform').serialize());
-    $.ajax({
-      url: '/get',
-      data: $('.getform').serialize(),
-      type: 'POST',
-      success: function (response) {
-        $(results_wrapper).empty();
-        for (var i = 0; i < response.result.length; i++){
-          $(results_wrapper).append('<input type="checkbox" class="feedinput"><label>'+response.result[i]+'</label><br>');
-        }
-      },
-      error: function(error){
-        console.log(error);
-      }
-    });
-  });
-
-  $('#savebutton').click(function(e) {
-    e.preventDefault();
-    var feeds = $('.feedinput').map(function () {
-      if($(this).is(':checked')){
-        return $(this).next('label').text();
-      }
-    }).get();
-    console.log('Save button clicked');
-    console.log('Feeds: ' + feeds);
-    var toSend = JSON.stringify(feeds);
-    console.log(toSend);
-    $.ajax({
-      url: '/save',
-      data: toSend,
-      type: 'POST',
-      dataType: "json",
-      contentType: "application/json;charset=utf-8",
-      success: function (response) {
-        console.log(response.message);
-        $('.messagebox').empty();
-        $('.messagebox').append('<p>'+response.message+'</p>');
-      },
-      error: function (error) {
-        console.log(error);
-      }
-    });
-  });
-});
-</script>
