@@ -4,6 +4,7 @@ import time
 import re
 import urllib
 from pprint import pprint
+from parser.py import get_feed_details
 
 app = Flask(__name__)
 
@@ -33,6 +34,9 @@ def get():
     session['feeds'] = []
 
     for url in urls:
+        if not url:
+            continue
+
         parsed = urllib.parse.urlparse(url)
         domain_root = parsed.netloc or parsed.path
         if domain_root in excluded_domains:

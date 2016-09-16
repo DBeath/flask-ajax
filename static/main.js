@@ -4,17 +4,41 @@ $(document).ready(function() {
   var wrapper = $(".input_fields_wrap");
   var add_button = $("#add_field_button");
   var results_wrapper = $("#results_wrapper");
+  var messagebox = $("#messagebox");
 
   var findform = $('#findform');
   var saveform = $('#saveform');
+  var saveformdiv =$('.saveformdiv');
 
   var field_num = 1;
+
+  var clearMessagebox = function(e) {
+    $('#messagearea').empty();
+  };
+
+  var showMessagebox = function(e) {
+    $('#messagearea').removeClass('hidden');
+    $('#messagearea').show();
+  };
+
+  var addMessageList = function(title, items, id){
+    $('#messagearea').append('<div class="ui message messagebox" id="'+id+'"><i class="close icon"></i></div>').html();
+    $('#'+id).append('<div class="header">'+title+'</div><ul class="list"></ul>');
+    for (var i = 0; i < items.length; i++){
+      $('#'+id+' ul.list').append('<li>'+items[i]+'</li>');
+    };
+
+    $('#'+id+' .close').on('click', function() {
+      $(this)
+        .closest('.messagebox').addClass('hidden');
+    });
+  };
 
   $(add_button).click(function(e) {
     e.preventDefault();
     if(field_num < max_fields){
       field_num++;
-      $(wrapper).append('<div class="ui action input"><input type="text" name="urlinput"/><button class="ui icon button remove_field"><i class="remove icon"></i></button></div>');
+      $(wrapper).append('<div class="field"><div class="ui action input"><input type="text" name="urlinput"/><button class="ui icon button remove_field"><i class="remove icon"></i></button></div></div>');
       // $('#urlinputdiv').clone().appendTo(wrapper);
     }
   });
@@ -24,6 +48,8 @@ $(document).ready(function() {
     if (field_num >= 2){
       field_num--;
       $(this).parent('div').remove();
+    } else {
+
     }
   });
 
@@ -37,37 +63,44 @@ $(document).ready(function() {
     console.log('Findfeeds URL: ' + $(findform).attr('action'));
     console.log('Send_data: ' + send_data);
 
+    $(findform).addClass('loading');
+    $(saveformdiv).hide();
+
     $.ajax({
       url: $(findform).attr('action'),
       data: formdata,
       type: "POST",
       success: function (response) {
         $(results_wrapper).empty();
-        $('.messagebox').empty();
+        clearMessagebox();
+        $(findform).removeClass('loading');
 
         if (response.excluded.length >= 1){
+          showMessagebox();
           console.log(response.excluded);
 
-          $('.messagebox').append('<p>URLs from the following domains are excluded:</p>')
-          for (var i = 0; i < response.excluded.length; i++){
-            $('.messagebox').append('<p>' + response.excluded[i] + '</p>');
-          }
+          var title = 'URLs from the following domains are excluded:';
+          addMessageList(title, response.excluded, 'excluded');
         }
 
         if (response.not_found.length >= 1){
+          showMessagebox();
           console.log(response.not_found);
 
-          $('.messagebox').append('<p>No RSS feeds found at URL(s):</p>')
-          for (var i = 0; i < response.not_found.length; i++){
-            $('.messagebox').append('<p>' + response.not_found[i] + '</p>');
-          }
+          var title = 'No RSS feeds found at URL(s):';
+          addMessageList(title, response.not_found, 'notfound');
         }
 
-        for (var i = 0; i < response.result.length; i++){
-          $(results_wrapper).append('<div class="item"><div class="ui checkbox"><input type="checkbox" class="feedinput"><label>'+response.result[i]+'</label></div></div>');
-        }
+        if (response.result.length >= 1){
+          $(saveformdiv).show();
+
+          for (var i = 0; i < response.result.length; i++){
+            $(results_wrapper).append('<div class="item"><div class="ui checkbox"><input type="checkbox" class="feedinput"><label>'+response.result[i]+'</label></div></div>');
+          };
+        };
       },
       error: function(error){
+        $(findform).removeClass('loading');
         console.log(error);
       }
     });
@@ -97,8 +130,9 @@ $(document).ready(function() {
       contentType: "application/json;charset=utf-8",
       success: function (response) {
         console.log(response.subscribed);
-        $('.messagebox').empty();
-        $('.messagebox').append('<p>'+response.subscribed+'</p>');
+        clearMessagebox();
+        // $('.messagebox').append('<p>'+response.subscribed+'</p>');
+        addMessageList('Subscribed to Feeds:', response.subscribed, 'subscribed');
       },
       error: function (error) {
         console.log(error);

@@ -5,33 +5,57 @@
   <title>Flask-Ajax</title>
   <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='semantic.min.css')}}">
   <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='icon.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='custom.css')}}">
   <script src="{{url_for('static', filename='semantic.min.js')}}"></script>
 </head>
 
 <body>
   <div class="ui container">
-  <div class="messagebox">
-  </div>
+    <div id='messagearea'>
+    </div>
+    <br>
 
-  <form class="ui form" action="{{ url_for('get') }}" method="post" role="form" id="findform">
-    <button class="ui button" id="add_field_button">Add More Fields</button>
-    <div class="field input_fields_wrap">
+    <div>
+      <button class="ui button" id="add_field_button">Add More Fields</button>
+    </div>
+    <br>
 
-      <div class="ui action input">
-        <input type="text" name="urlinput"/>
-        <button class="ui icon button remove_field">
-          <i class="remove icon"></i>
-        </button>
+    <form class="ui form" action="{{ url_for('get') }}" method="post" role="form" id="findform">
+
+      <div class="field input_fields_wrap">
+        <div class="field">
+          <div class="ui action input">
+            <input type="text" name="urlinput"/>
+            <button class="ui icon button remove_field">
+              <i class="remove icon"></i>
+            </button>
+          </div>
+        </div>
       </div>
-    </div>
-    <button class="ui button" type="submit" id="findbutton">Find Feeds</button>
-  </form>
+      <button class="ui button" type="submit" id="findbutton">Find Feeds</button>
+    </form>
+    <br>
 
-  <form class="ui form" action="{{ url_for('save') }}", method="post" role="form" id="saveform">
-    <div class="list" id="results_wrapper">
+    <div class="saveformdiv ui hidden">
+      <form class="ui form hidden" action="{{ url_for('save') }}", method="post" role="form" id="saveform">
+        <div class="ui selection list items" id="results_wrapper">
+          <div class="item">
+            <div class="ui checkbox">
+              <input type="checkbox" class="feedinput">
+              <label>https://example.com</label>
+            </div>
+          </div>
+          <div class="item">
+            <div class="ui checkbox">
+              <input type="checkbox" class="feedinput">
+              <label>https://testing.com</label>
+            </div>
+          </div>
+        </div>
+        <button class="ui button" type="submit" id="savebutton">Subscribe Feeds</button>
+      </form>
     </div>
-    <button class="ui button" type="submit" id="savebutton">Subscribe Feeds</button>
-  </form>
+
   </div>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
