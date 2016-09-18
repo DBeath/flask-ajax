@@ -4,7 +4,6 @@ import time
 import re
 import urllib
 from pprint import pprint
-from parser.py import get_feed_details
 
 app = Flask(__name__)
 

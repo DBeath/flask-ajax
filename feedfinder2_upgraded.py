@@ -33,30 +33,33 @@ def coerce_url(url):
 class FeedInfo(object):
 
     def __init__(self, link, soup=None):
-        parsed = feedparser.parse(link)
+        r = requests.get(link)
+        url = r.url
+        parsed = feedparser.parse(r.text)
         self.link = link
 
         if soup:
+            print('Got soup')
             self.icon_link = self.find_icon_link(soup)
             if self.icon_link:
                 self.icon = self.get_icon(self.icon_link)
-            self.website = self.get_website(soup)
+            self.website = self.get_website(soup, url)
 
         if parsed:
             self.title = self.find_title(parsed)
             self.description = self.find_description(parsed)
 
     def find_icon_link(self, soup):
-        self.icon_link = soup.find("link", rel="shortcut icon")
+        return soup.find("link", rel="shortcut icon")
 
     def get_icon(self, link):
-        self.icon = requests.get(link)
+        return requests.get(link)
 
     def find_title(self, parsed):
         title = parsed.feed.get('title', None)
         if not title:
             return
-        self.title = self.clean_title(title)
+        return self.clean_title(title)
 
     def clean_title(self, title):
         try:
@@ -70,12 +73,28 @@ class FeedInfo(object):
     def find_description(self, parsed):
         subtitle = parsed.feed.get('subtitle', None)
         if subtitle:
-            self.description = subtitle
+            return subtitle
         else:
-            self.description = parsed.feed.get('description', None)
+            return parsed.feed.get('description', None)
 
-    def get_website(self, soup):
-        self.website = soup.find("link", rel="canonical")
+    def get_website(self, soup, url):
+        site = soup.find("link", rel="canonical")
+        if not site:
+            return url
+
+    def site_name(self, soup):
+        site_name_meta = ['og:site_name',
+                          'application:name',
+                          'twitter:app:name:iphone']
+
+        name = None
+        for p in site_name_meta:
+            meta = self.soup.find(name='meta', property=p)
+            if meta:
+                name = meta.get('content', None)
+            if name:
+                return name
+        return None
 
 
 class FeedFinder(object):
@@ -84,6 +103,7 @@ class FeedFinder(object):
         if user_agent is None:
             user_agent = "feedfinder2/{0}".format(__version__)
         self.user_agent = user_agent
+        self.feeds = []
 
     def get_feed(self, url):
         try:
@@ -92,19 +112,22 @@ class FeedFinder(object):
             logging.warn("Error while getting '{0}'".format(url))
             logging.warn("{0}".format(e))
             return None
-        return r
+        return r.text
 
     def is_feed_data(self, text):
         data = text.lower()
         if data.count("<html"):
             return False
-        return data.count("<rss")+data.count("<rdf")+data.count("<feed")
+        return data.count("<rss") + data.count("<rdf") + data.count("<feed")
 
     def is_feed(self, url):
-        text = self.get_feed(url).text
+        text = self.get_feed(url)
         if text is None:
             return False
-        return self.is_feed_data(text)
+        if self.is_feed_data(text):
+            self.create_feedinfo(url, text)
+            return True
+        return False
 
     def is_feed_url(self, url):
         return any(map(url.lower().endswith,
@@ -114,6 +137,11 @@ class FeedFinder(object):
         return any(map(url.lower().count,
                        ["rss", "rdf", "xml", "atom", "feed"]))
 
+    def create_feedinfo(self, url, text):
+        soup = BeautifulSoup(text, 'html.parser')
+        info = FeedInfo(url, soup)
+        self.feeds.append(info)
+
 
 def find_feeds(url, check_all=False, user_agent=None):
     finder = FeedFinder(user_agent=user_agent)
@@ -122,8 +150,7 @@ def find_feeds(url, check_all=False, user_agent=None):
     url = coerce_url(url)
 
     # Download the requested URL.
-    response = finder.get_feed(url)
-    text = response.text
+    text = finder.get_feed(url)
     if text is None:
         return []
 
@@ -147,7 +174,7 @@ def find_feeds(url, check_all=False, user_agent=None):
     urls = list(filter(finder.is_feed, links))
     logging.info("Found {0} feed <link> tags.".format(len(urls)))
     if len(urls) and not check_all:
-        return sort_urls(urls)
+        return sort_urls(urls), finder.feeds
 
     # Look for <a> tags.
     logging.info("Looking for <a> tags.")
@@ -180,14 +207,7 @@ def find_feeds(url, check_all=False, user_agent=None):
            "index.rss"]
     urls += list(filter(finder.is_feed, [urlparse.urljoin(url, f)
                                          for f in fns]))
-    sorted_urls = sort_urls(urls)
-
-    feedinfos = []
-    for url in sorted_urls:
-        feedinfos.append(FeedInfo(url, tree))
-
-    print(feedinfos)
-    return feedinfos
+    return sort_urls(urls)
 
 
 def url_feed_prob(url):
