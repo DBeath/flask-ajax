@@ -95,7 +95,9 @@ $(document).ready(function() {
           $(saveformdiv).show();
 
           for (var i = 0; i < response.result.length; i++){
-            $(results_wrapper).append('<div class="item"><div class="ui checkbox"><input type="checkbox" class="feedinput"><label>'+response.result[i]+'</label></div></div>');
+            var feed = JSON.parse(response.result[i]);
+            console.log(feed);
+            $(results_wrapper).append('<div class="item"><div class="ui checkbox"><input type="checkbox" class="feedinput"><img class="ui mini image" src="'+feed.site_icon_link+'"><label>'+feed.url+'</label></div></div>');
           };
         };
       },

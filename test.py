@@ -1,11 +1,19 @@
 from pprint import pprint
-from feedfinder2_upgraded import find_feeds
+from feedfinder3 import find_feeds
+import urllib
+import logging
 
-url = 'boingboing.net'
+logging.basicConfig(level=logging.INFO)
 
-urls, infos = find_feeds(url)
+# url = 'http://boingboing.net/feed'
+# url = 'http://boingboing.net'
+# url = 'http://davidbrin.blogspot.com'
+url = 'xkcd.com'
 
-pprint(urls)
+infos = find_feeds(url, get_feedinfo=True)
 
-for i in infos:
-    pprint(vars(i))
+pprint(infos)
+
+if infos:
+    for i in infos:
+        pprint(vars(i))

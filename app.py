@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, g, session
-from feedfinder2 import find_feeds
+from feedfinder3 import find_feeds
 import time
 import re
 import urllib
@@ -43,21 +43,22 @@ def get():
             excluded.append(url)
             continue
 
-        found = find_feeds(url)
+        found = find_feeds(url, get_feedinfo=True)
+        # found = find_feeds(url)
         print('Found feeds: {0}'.format(found))
         for f in found:
             print(f)
-            if not comment_regex.search(f):
+            if not comment_regex.search(f.url):
                 feeds.append(f)
 
         if not found:
             not_found.append(url)
 
     print('Feeds: {0}'.format(feeds))
-    session['feeds'] = feeds
+    session['feeds'] = list(f.serialize() for f in feeds)
     print('Session feeds: {0}'.format(session['feeds']))
 
-    return jsonify({'result': feeds,
+    return jsonify({'result': list(f.serialize() for f in feeds),
                     'not_found': not_found,
                     'excluded': excluded})
 
