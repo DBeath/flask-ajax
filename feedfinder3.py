@@ -38,7 +38,7 @@ class FeedInfo(object):
         if soup:
             self.site_name = self.find_site_name(soup)
             self.site_url = self.find_site_url(soup, self.site_url)
-            self.site_icon_link = self.find_site_icon_link(soup, self.url)
+            self.site_icon_link = self.find_site_icon_link(soup, self.site_url)
 
     @staticmethod
     def parse_feed(text):
@@ -110,6 +110,10 @@ class FeedInfo(object):
             rel = soup.find(name='link', rel=r)
             if rel:
                 icon = rel.get('href', None)
+                if icon[0] == '/':
+                    icon = url + icon
+                if icon == 'favicon.ico':
+                    icon = url + '/' + icon
         if not icon:
             r = requests.get(url + '/favicon.ico')
             if r.status_code == requests.codes.ok:
