@@ -3,13 +3,16 @@ var SearchNode = React.createClass({
   getInitialState: function() {
     return {value: ""};
   },
+  handleChange: function (e) {
+    this.setState({value: e.target.value});
+    this.props.onHandleChange(e.target.value);
+  },
   render: function () {
     return (
       <div className="field">
         <div className="ui action input">
-          <p>{this.props.input}</p>
-          <input type="text" name="urlinput" id={this.props.input} value={this.state.value}/>
-          <button type="button" className="ui icon button delete" onClick={() => this.props.onDelete(this.props.input)}>
+          <input type="text" name="urlinput" id={this.props.id} value={this.state.value} onChange={this.handleChange}/>
+          <button type="button" className="ui icon button delete" onClick={this.props.onDelete}>
             <i className="remove icon"></i>
           </button>
         </div>
@@ -18,38 +21,68 @@ var SearchNode = React.createClass({
   }
 });
 
-var RemoveSearchNodeButton = React.createClass({
-  render: function() {
-    return (
-      <button type="button" className="ui icon button" onClick={this.props.clickHandler}>
-        <i className="remove icon"></i>
-      </button>
-    )
-  }
-});
-
 var FindForm = React.createClass({
   getInitialState: function () {
-    return { inputs: ['input-0'] };
+    return { inputs: ['input-0'], urls: []};
   },
-  onDelete: function (input) {
-    var index = this.state.inputs.findIndex(input);
-    this.setState({ inputs: this.state.inputs.splice(index, 1) });
+  onButtonDelete: function (index) {
+    if (this.state.inputs.length > 1){
+      var inputs = this.state.inputs.filter(function(input, i) {
+        return index !== i;
+      });
+      this.setState({ inputs: inputs});
+    }
+
   },
-  appendInput() {
+  onHandleChange: function (index, value) {
+    var urls = this.state.urls
+    urls[index] = value;
+    this.state.urls = urls
+  },
+  appendInput: function () {
     var newInput = `input-${this.state.inputs.length}`;
     this.setState({ inputs: this.state.inputs.concat([newInput]) });
   },
+  handleSubmit: function (e) {
+    e.preventDefault();
+
+    // var data = this.state.inputs.map(function(input){
+    //   console.log(input);
+    //   return input.value;
+    // });
+
+    var data = {urls: this.state.urls};
+    console.log('Data: ' + data);
+    console.log(data['urls'])
+    // var data = this.state.urls;
+    // console.log(data);
+
+    $.ajax({
+      url: this.props.url,
+      dataType: 'json',
+      type: 'POST',
+      data: data,
+      success: function (data) {
+        console.log(data);
+      }.bind(this),
+      error: function (xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
   render: function () {
-    var searchNodes = this.state.inputs.map(function(input){
+    var searchNodes = this.state.inputs.map(function(input, i){
+      var boundClick = this.onButtonDelete.bind(this, i);
+      var boundValue = this.onHandleChange.bind(this, i);
       return (
         <SearchNode
-          key={input}
+          key={i}
           id={input}
-          onDelete={input => this.onDelete(input)}
+          onDelete={boundClick}
+          onHandleChange={boundValue}
         />
       );
-    });
+    }.bind(this));
     return (
       <div className="ui segment">
         <p>FindForm Url: {this.props.url}</p>
@@ -66,6 +99,6 @@ var FindForm = React.createClass({
 });
 
 ReactDOM.render(
- <FindForm url='/get' />,
+ <FindForm url='/test'/>,
  document.getElementById('content')
 )

@@ -79,6 +79,18 @@ def save():
     return jsonify({'subscribed': to_subscribe})
 
 
+@app.route('/test', methods=['POST'])
+def test():
+    print(request.mimetype)
+    print(request.form)
+
+    print(request.get_json())
+    urls = request.form.getlist('urls[]')
+    print(urls)
+
+    return jsonify({"urls": urls})
+
+
 @app.before_request
 def before_request():
     g.start = time.time()
