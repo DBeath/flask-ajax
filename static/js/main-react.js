@@ -7,12 +7,17 @@ var SearchNode = React.createClass({
     this.setState({value: e.target.value});
     this.props.onHandleChange(e.target.value);
   },
+  handleDeleteButton: function (e) {
+    e.preventDefault();
+    this.setState({value: ""});
+    this.props.onDelete();
+  },
   render: function () {
     return (
       <div className="field">
         <div className="ui action input">
           <input type="text" name="urlinput" id={this.props.id} value={this.state.value} onChange={this.handleChange}/>
-          <button type="button" className="ui icon button delete" onClick={this.props.onDelete}>
+          <button type="button" className="ui icon button delete" onClick={this.handleDeleteButton}>
             <i className="remove icon"></i>
           </button>
         </div>
@@ -21,7 +26,7 @@ var SearchNode = React.createClass({
   }
 });
 
-var FindForm = React.createClass({
+var SearchForm = React.createClass({
   getInitialState: function () {
     return { inputs: ['input-0'], urls: []};
   },
@@ -32,12 +37,14 @@ var FindForm = React.createClass({
       });
       this.setState({ inputs: inputs});
     }
-
+    var urls = this.state.urls;
+    urls.splice(index, 1);
+    this.state.urls = urls;
   },
   onHandleChange: function (index, value) {
-    var urls = this.state.urls
+    var urls = this.state.urls;
     urls[index] = value;
-    this.state.urls = urls
+    this.state.urls = urls;
   },
   appendInput: function () {
     var newInput = `input-${this.state.inputs.length}`;
@@ -45,30 +52,8 @@ var FindForm = React.createClass({
   },
   handleSubmit: function (e) {
     e.preventDefault();
-
-    // var data = this.state.inputs.map(function(input){
-    //   console.log(input);
-    //   return input.value;
-    // });
-
-    var data = {urls: this.state.urls};
-    console.log('Data: ' + data);
-    console.log(data['urls'])
-    // var data = this.state.urls;
-    // console.log(data);
-
-    $.ajax({
-      url: this.props.url,
-      dataType: 'json',
-      type: 'POST',
-      data: data,
-      success: function (data) {
-        console.log(data);
-      }.bind(this),
-      error: function (xhr, status, err) {
-        console.error(this.props.url, status, err.toString());
-      }.bind(this)
-    });
+    this.props.onSearchSubmit({ urls: this.state.urls });
+    return;
   },
   render: function () {
     var searchNodes = this.state.inputs.map(function(input, i){
@@ -85,7 +70,6 @@ var FindForm = React.createClass({
     }.bind(this));
     return (
       <div className="ui segment">
-        <p>FindForm Url: {this.props.url}</p>
         <form className="ui form" onSubmit={this.handleSubmit}>
           {searchNodes}
           <button type="button" className="ui button" onClick={ () => this.appendInput() }>
@@ -98,7 +82,71 @@ var FindForm = React.createClass({
   }
 });
 
+var Result = React.createClass({
+  render: function () {
+    return (
+      <div className="item">
+        <div className="ui checkbox">
+          <input type="checkbox" className="feedinput"/>
+          <label>{this.props.url}</label>
+        </div>
+      </div>
+    );
+  }
+});
+
+var SearchResults = React.createClass({
+  render: function () {
+    console.log(this.props);
+    var resultNodes = this.props.data.map(function (feed, i) {
+      console.log(feed);
+      return (
+        <Result
+          key={i}
+          url={feed.url}
+          description={feed.description}>
+        </Result>
+      );
+    });
+    return (
+      <div className="feedsresult">
+        {resultNodes}
+      </div>
+    );
+  }
+});
+
+var FeedSearch = React.createClass({
+  getInitialState: function () {
+    return {data: []};
+  },
+  handleSearchSubmit: function (urls) {
+    $.ajax({
+      url: this.props.url,
+      dataType: 'json',
+      type: 'POST',
+      data: urls,
+      success: function (data) {
+        console.log(data);
+        console.log(data.result);
+        this.setState({ data: data.result });
+      }.bind(this),
+      error: function (xhr, status, err) {
+        console.error(this.props.url, status, err.toString());
+      }.bind(this)
+    });
+  },
+  render: function () {
+    return (
+      <div className="ui container">
+        <SearchForm onSearchSubmit={this.handleSearchSubmit} />
+        <SearchResults data={this.state.data} />
+      </div>
+    );
+  }
+});
+
 ReactDOM.render(
- <FindForm url='/test'/>,
+ <FeedSearch url='/get'/>,
  document.getElementById('content')
 )

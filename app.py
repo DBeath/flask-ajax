@@ -1,9 +1,10 @@
 from flask import Flask, request, jsonify, render_template, g, session
-from feedfinder3 import find_feeds
+from feedfinder3 import find_feeds, FeedInfo
 import time
 import re
 import urllib
 from pprint import pprint
+import json
 
 app = Flask(__name__)
 
@@ -24,10 +25,12 @@ def index():
 
 @app.route('/get', methods=['POST'])
 def get():
-    urls = request.form.getlist('urlinput')
+    # urls = request.form.getlist('urlinput')
+    urls = request.form.getlist('urls[]')
     print('Sent URLs: {0}'.format(urls))
 
-    feeds = []
+    feed1 = FeedInfo(url='http://test.com')
+    feeds = [feed1]
     not_found = []
     excluded = []
     session['feeds'] = []
@@ -55,12 +58,16 @@ def get():
             not_found.append(url)
 
     print('Feeds: {0}'.format(feeds))
-    session['feeds'] = list(f.serialize() for f in feeds)
+    serialized = list(f.serialize() for f in feeds)
+    session['feeds'] = serialized
     print('Session feeds: {0}'.format(session['feeds']))
 
-    return jsonify({'result': list(f.serialize() for f in feeds),
-                    'not_found': not_found,
-                    'excluded': excluded})
+    # return jsonify({'result': list(f.serialize() for f in feeds),
+    #                 'not_found': not_found,
+    #                 'excluded': excluded})
+    dump = json.dump([f.__dict__ for f in feeds])
+    print(dump)
+    return jsonify(result=dump)
 
 
 @app.route('/save', methods=['POST'])
