@@ -5,6 +5,8 @@ import re
 import urllib
 from pprint import pprint
 import json
+from marshmallow import Schema, fields
+import time
 
 app = Flask(__name__)
 
@@ -15,6 +17,24 @@ comment_pattern = '\/comment(?:s)?(?:\/)?'
 comment_regex = re.compile(comment_pattern)
 
 excluded_domains = ['auctorial.com']
+
+feed1 = FeedInfo(url='http://test.com')
+feed1.subscribed = True
+feed1.description = 'This is the first test feed.'
+
+feed2 = FeedInfo(url='http://test2.com')
+feed2.description = 'This is a test feed'
+feed2.title = 'Test 2'
+
+
+class FileInfoSchema(Schema):
+    url = fields.String()
+    site_url = fields.String()
+    title = fields.String()
+    description = fields.String()
+    site_name = fields.String()
+    site_icon_link = fields.String()
+    subscribed = fields.Boolean()
 
 
 @app.route('/')
@@ -29,11 +49,13 @@ def get():
     urls = request.form.getlist('urls[]')
     print('Sent URLs: {0}'.format(urls))
 
-    feed1 = FeedInfo(url='http://test.com')
-    feeds = [feed1]
+    feeds = [feed1, feed2]
     not_found = []
     excluded = []
     session['feeds'] = []
+
+    urls = set(urls)
+    print('Set Urls: {0}'.format(urls))
 
     for url in urls:
         if not url:
@@ -51,23 +73,32 @@ def get():
         print('Found feeds: {0}'.format(found))
         for f in found:
             print(f)
-            if not comment_regex.search(f.url):
+            if not comment_regex.search(f.url) and not f in feeds:
                 feeds.append(f)
 
         if not found:
             not_found.append(url)
 
+    file_info_schema = FileInfoSchema(many=True)
+    result = file_info_schema.dump(feeds)
     print('Feeds: {0}'.format(feeds))
-    serialized = list(f.serialize() for f in feeds)
-    session['feeds'] = serialized
+
+    # serialized = list(f.serialize() for f in feeds)
+    session['feeds'] = result.data
+    session['feed_urls'] = list(f.url for f in feeds)
     print('Session feeds: {0}'.format(session['feeds']))
 
-    # return jsonify({'result': list(f.serialize() for f in feeds),
-    #                 'not_found': not_found,
-    #                 'excluded': excluded})
-    dump = json.dump([f.__dict__ for f in feeds])
-    print(dump)
-    return jsonify(result=dump)
+    return jsonify({"result": result.data})
+
+
+@app.route('/save2', methods=['POST'])
+def save2():
+    print(request.mimetype)
+    requested_feed = request.get_json()
+    print('Requested feeds: {0}'.format(requested_feed))
+    if requested_feed in session['feed_urls']:
+        return jsonify({'subscribed': requested_feed})
+    return jsonify({'subcribed': None})
 
 
 @app.route('/save', methods=['POST'])

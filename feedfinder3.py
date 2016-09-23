@@ -30,6 +30,12 @@ class FeedInfo(object):
     def __repr__(self):
         return 'FeedInfo: {0}'.format(self.url)
 
+    def __eq__(self, other):
+        return self.url == other.url
+
+    def __hash__(self):
+        return hash(self.url)
+
     def get_info(self, text=None, soup=None):
         if text:
             parsed = self.parse_feed(text)
@@ -38,7 +44,8 @@ class FeedInfo(object):
         if soup:
             self.site_name = self.find_site_name(soup)
             self.site_url = self.find_site_url(soup, self.site_url)
-            self.site_icon_link = self.find_site_icon_link(soup, self.site_url)
+            domain = self.domain(self.site_url)
+            self.site_icon_link = self.find_site_icon_link(soup, domain)
 
     @staticmethod
     def parse_feed(text):
@@ -111,24 +118,25 @@ class FeedInfo(object):
             if rel:
                 icon = rel.get('href', None)
                 if icon[0] == '/':
-                    icon = url + icon
+                    icon = '{0}{1}'.format(url, icon)
                 if icon == 'favicon.ico':
-                    icon = url + '/' + icon
+                    icon = '{0}/{1}'.format(url, icon)
         if not icon:
-            r = requests.get(url + '/favicon.ico')
+            send_url = url + '/favicon.ico'
+            print('Trying url {0} for favicon'.format(send_url))
+            r = requests.get(send_url)
+            print('Received url {0}'.format(r.url))
             if r.status_code == requests.codes.ok:
                 icon = r.url
         return icon
 
+    @staticmethod
+    def domain(url):
+        parsed = urlparse.urlparse(url)
+        domain = '{uri.scheme}://{uri.netloc}'.format(uri=parsed)
+        return domain
+
     def serialize(self):
-        # return {
-        #     'url': self.url,
-        #     'site_url': self.site_url,
-        #     'site_name': self.site_name,
-        #     'site_icon_link': self.site_icon_link,
-        #     'description': self.description,
-        #     'title': self.title
-        # }
         return json.dumps(self, default=lambda o: o.__dict__,
                           sort_keys=True, indent=4)
 
@@ -147,8 +155,10 @@ class FeedFinder(object):
 
     def get_url(self, url):
         try:
-            r = requests.get(url, headers={"User-Agent": self.user_agent},
-                             timeout=10)
+            with requests.Session() as s:
+                s.max_redirects = 50
+                r = s.get(url, headers={"User-Agent": self.user_agent},
+                          timeout=(5, 20))
         except Exception as e:
             logging.warn("Error while getting URL '{0}': {1}".format(url, e))
             return None
@@ -265,9 +275,9 @@ def find_feeds(url, check_all=False, user_agent=None, get_feedinfo=False):
 def url_feed_prob(url):
     score = 0
     if "comments" in url:
-        score -=3
+        score -= 3
     if "georss" in url:
-        score -=2
+        score -= 2
     if "alt" in url:
         score -= 1
     kw = ["rss", "atom", "rdf", ".xml", "feed"]

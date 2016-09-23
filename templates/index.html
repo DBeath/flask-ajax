@@ -12,7 +12,7 @@
     <script src="{{url_for('static', filename='js/jquery-3.1.0.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/babel-core-5.8.38-browser.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/remarkable.min.js')}}"></script>
-    <script src="{{url_for('static', filename='js/microevent.js')}}"></script>
+    <script src="{{url_for('static', filename='js/eventemitter.js')}}"></script>
 </head>
 
 <body>
@@ -21,7 +21,7 @@
     </div>
     <br>
 
-    <div>
+    <!-- <div>
       <button class="ui button" id="add_field_button">Add More Fields</button>
     </div>
     <br>
@@ -61,8 +61,33 @@
         <button class="ui button" type="submit" id="savebutton">Subscribe Feeds</button>
       </form>
     </div>
+  </div> -->
 
-  </div>
+ <!--  <div class="ui container">
+    <div class="ui two cards">
+      <div class="ui card ">
+        <div class="content">
+        <div class="ui dimmer active">
+          <div class="ui text loader">
+          Loading
+          </div>
+        </div>
+          <img class="left floated mini ui image" src="http://boingboing.net/favicon.ico"></img>
+          <div class="header">Test Card</div>
+          <div class="meta">
+            <a href="#">http://test.com</a>
+          </div>
+          <div class="description">
+            This is a test card.
+          </div>
+        </div>
+        <div class="ui bottom attached button green">
+          <i class="checkmark icon"></i>
+            Subscribed
+        </div>
+      </div>
+    </div>
+  </div> -->
 
   <div class="ui container" id="content">
   </div>
