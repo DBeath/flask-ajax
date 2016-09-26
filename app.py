@@ -6,10 +6,36 @@ import urllib
 from pprint import pprint
 import json
 from marshmallow import Schema, fields
+import time
+from flask_assets import Environment, Bundle
+from webassets.filter import get_filter
 
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'blahblah'
+
+assets = Environment(app)
+
+js = Bundle('js/jquery-3.1.0.min.js',
+            'js/semantic.min.js',
+            'js/eventemitter.js',
+            filters='jsmin',
+            output='gen/packed.js')
+assets.register('js_all', js)
+
+react_filter = get_filter('babel', presets='react')
+react = Bundle('js/react.js',
+               'js/react-dom.js',
+               'js/main-react.js',
+               filters=react_filter,
+               output='gen/react_all.js')
+assets.register('react_all', react)
+
+css = Bundle('css/semantic.min.css',
+             'css/custom.css',
+             filters='cssutils',
+             output='gen/packed.css')
+assets.register('css_all', css)
 
 
 comment_pattern = '\/comment(?:s)?(?:\/)?'
@@ -40,6 +66,11 @@ class FileInfoSchema(Schema):
 def index():
     msg = 'Hello World 2'
     return render_template('index.html', msg=msg)
+
+
+@app.route('/security')
+def security():
+    return render_template('security/login_user.html')
 
 
 @app.route('/get', methods=['POST'])

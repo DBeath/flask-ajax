@@ -3,6 +3,7 @@
 
 <head>
   <title>Flask-Ajax</title>
+<<<<<<< HEAD
   <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/semantic.min.css')}}">
   <!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/icon.min.css')}}"> -->
   <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/custom.css')}}">
@@ -13,6 +14,29 @@
     <script src="{{url_for('static', filename='js/babel-core-5.8.38-browser.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/remarkable.min.js')}}"></script>
     <script src="{{url_for('static', filename='js/eventemitter.js')}}"></script>
+||||||| merged common ancestors
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/semantic.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/icon.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/custom.css')}}">
+  <script src="{{url_for('static', filename='js/semantic.min.js')}}"></script>
+  <script src="{{url_for('static', filename='js/react.js')}}"></script>
+    <script src="{{url_for('static', filename='js/react-dom.js')}}"></script>
+    <script src="{{url_for('static', filename='js/jquery-3.1.0.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/babel-core-5.8.38-browser.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/remarkable.min.js')}}"></script>
+    <script src="{{url_for('static', filename='js/eventemitter.js')}}"></script>
+=======
+  <!-- <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/semantic.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/icon.min.css')}}">
+  <link rel="stylesheet" type="text/css" href="{{url_for('static', filename='css/custom.css')}}"> -->
+  {% assets "css_all" %}
+    <link rel="stylesheet" type="text/css" href="{{ ASSET_URL }}">
+  {% endassets %}
+  <!-- <script src="{{url_for('static', filename='js/react.js')}}"></script>
+  <script src="{{url_for('static', filename='js/react-dom.js')}}"></script> -->
+  <!-- <script src="{{url_for('static', filename='js/babel-core-5.8.38-browser.min.js')}}"></script> -->
+
+>>>>>>> be000e802bf70b054f01b342b4b51ee93a4fa20b
 </head>
 
 <body>
@@ -93,9 +117,17 @@
   </div>
 
   <!-- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script> -->
-  <script>window.jQuery || document.write('<script src="{{url_for('static', filename='js/jquery-3.1.0.min.js') }}">\x3C/script>')</script>
-  <script src="{{url_for('static', filename='js/main.js')}}"></script>
-  <script type="text/babel" src="{{url_for('static', filename='js/main-react.js')}}"></script>
+  {% assets "js_all" %}
+    <script async type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+  {% assets "react_all" %}
+    <script defer async type="text/javascript" src="{{ ASSET_URL }}"></script>
+  {% endassets %}
+
+  <!-- <script>window.jQuery || document.write('<script src="{{url_for('static', filename='js/jquery-3.1.0.min.js') }}">\x3C/script>')</script>
+  <script src="{{url_for('static', filename='js/main.js')}}"></script> -->
+  <!-- <script type="text/babel" src="{{url_for('static', filename='js/main-react.js')}}"></script> -->
+  <!-- <script src="{{url_for('static', filename='js/semantic.min.js')}}"></script> -->
 </body>
 </html>
 

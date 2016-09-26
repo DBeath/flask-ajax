@@ -83,11 +83,6 @@ var MessageBox = React.createClass({
   }
 });
 
-ReactDOM.render(
-  <MessageBox />,
-  document.getElementById('messagearea')
-);
-
 
 var SearchNode = React.createClass({
   getInitialState: function() {
@@ -350,4 +345,9 @@ var FeedSearch = React.createClass({
 ReactDOM.render(
  <FeedSearch url='/get' saveUrl='/save2'/>,
  document.getElementById('content')
-)
+),
+
+ReactDOM.render(
+  <MessageBox />,
+  document.getElementById('messagearea')
+);
