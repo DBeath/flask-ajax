@@ -1,19 +1,46 @@
 
 var ee = new EventEmitter();
 
-var message = function(message){
-  console.log('Received message: ' + message);
-};
-
-ee.addListener('message', message);
-
 var Message = React.createClass({
   render: function () {
+    if (this.props.content.items.length > 1){
+      var messageList = this.props.content.map(function(item){
+        return (
+          <li>{item}</li>
+        );
+      });
+      var messages = (
+        <ul className="list">
+          {messageList}
+        </ul>
+      );
+    } else if (this.props.content.items.length === 1) {
+      var messages = (
+        <p>{this.props.content.items[0]}</p>
+      );
+    } else {
+      var messages = null;
+    };
+    if (this.props.content.title){
+      var title = (
+        <div className="header">
+          {this.props.content.title}
+        </div>
+      );
+    } else {
+      var title = null;
+    };
+    var messageClass = "ui message";
+    if (this.props.content.type){
+      messageClass += " "+this.props.content.type;
+    }
     return (
-      <div className="message">
-        {this.props.content}
+      <div className={messageClass}>
+        <i className="close icon float left" onClick={this.props.onDelete}></i>
+        {title}
+        {messages}
       </div>
-    )
+    );
   }
 });
 
@@ -30,15 +57,23 @@ var MessageBox = React.createClass({
     this.setState({messages: this.state.messages.concat([newMessage]),
                    message_num: this.state.message_num += 1});
   },
+  closeMessage: function (index) {
+    var messages = this.state.messages.filter(function(message, i) {
+      return index !== i;
+    });
+    this.setState({ messages: messages, message_num: messages.length });
+  },
   render: function () {
-    var messageNodes = this.state.messages.map(function(message){
+    var messageNodes = this.state.messages.map(function(message, i){
+      var boundClick = this.closeMessage.bind(this, i);
       return (
         <Message
           key={message.id}
-          content={message.content}>
+          content={message.content}
+          onDelete={boundClick}>
         </Message>
       )
-    });
+    }.bind(this));
 
     return (
       <div className="messageBox">
@@ -105,7 +140,7 @@ var SearchForm = React.createClass({
   onHandleChange: function (index, value) {
     var urls = this.state.urls;
     urls[index] = value;
-    this.state.urls = urls;
+    this.setState({ urls: urls });
   },
   appendInput: function () {
     var maxInputs = 3;
@@ -126,7 +161,7 @@ var SearchForm = React.createClass({
       var boundValue = this.onHandleChange.bind(this, i);
       return (
         <SearchNode
-          key={this.state.inputs[i]}
+          key={input}
           id={input}
           onDelete={boundClick}
           onHandleChange={boundValue}
@@ -148,15 +183,15 @@ var SearchForm = React.createClass({
     };
     return (
       <div className="ui segment">
-        <h3>Search Sites for RSS Feeds</h3>
+        <h3>Search Sites for RSS Feeds <i className="rss icon"></i></h3>
         {loading}
         <form className="ui form" onSubmit={this.handleSubmit}>
           {searchNodes}
           <button className="ui button blue" type="submit" value="Post">
-            Search for Feeds
+            <i className="search icon"></i> Search for Feeds
           </button>
           <button type="button" className="ui button right floated" onClick={ () => this.appendInput() }>
-            Add Field
+            <i className="add icon"></i> Add Field
           </button>
         </form>
       </div>
@@ -182,9 +217,11 @@ var Result = React.createClass({
       type: 'POST',
       contentType: "application/json;charset=utf-8",
       success: function (result) {
-        console.log('success: ' + result.subscribed);
         if (result.subscribed === this.props.url){
-          ee.emitEvent('message', ['Subscribed to ' + this.props.url]);
+          var message = {'title': 'Subscribe Successful',
+                         'type': 'info',
+                         'items': ['Subscribed to feed at ' + this.props.url]};
+          ee.emitEvent('message', [message]);
           this.setState({loading: false, subscribed: true});
         } else {
           this.setState({loading: false});

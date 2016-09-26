@@ -6,7 +6,6 @@ import urllib
 from pprint import pprint
 import json
 from marshmallow import Schema, fields
-import time
 
 app = Flask(__name__)
 
@@ -73,7 +72,7 @@ def get():
         print('Found feeds: {0}'.format(found))
         for f in found:
             print(f)
-            if not comment_regex.search(f.url) and not f in feeds:
+            if not comment_regex.search(f.url) and f not in feeds:
                 feeds.append(f)
 
         if not found:
